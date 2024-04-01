@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/cs342-project3.iml" filepath="$PROJECT_DIR$/.idea/cs342-project3.iml" />
+=======
+      <module fileurl="file://$USER_HOME$/Documents/cs342-project3/Project3Client/Project3Client.iml" filepath="$USER_HOME$/Documents/cs342-project3/Project3Client/Project3Client.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/cs342-project3/Project3Server/Project3Server.iml" filepath="$USER_HOME$/Documents/cs342-project3/Project3Server/Project3Server.iml" />
+>>>>>>> 5ada6a1a4d7cbeedf541a7b9dd625ecf3423dfa7
     </modules>
   </component>
 </project>

@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+<<<<<<< HEAD
+=======
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$USER_HOME$/Documents/cs342-project3/Project3Client/pom.xml" />
+        <option value="$USER_HOME$/Documents/cs342-project3/Project3Server/pom.xml" />
+      </list>
+    </option>
+  </component>
+>>>>>>> 5ada6a1a4d7cbeedf541a7b9dd625ecf3423dfa7
   <component name="ProjectRootManager" version="2" project-jdk-name="11" project-jdk-type="JavaSDK" />
 </project>
