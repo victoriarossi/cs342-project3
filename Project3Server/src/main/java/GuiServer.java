@@ -58,8 +58,6 @@ public class GuiServer extends Application{
 	}
 	
 	public Scene createServerGui() {
-
-		//something
 		
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(70));
