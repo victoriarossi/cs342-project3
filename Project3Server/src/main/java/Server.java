@@ -15,7 +15,6 @@ import javafx.scene.control.ListView;
 
 public class Server{
 
-	int count = 1;	
 	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
 	TheServer server;
 	private Consumer<Serializable> callback;
@@ -34,24 +33,22 @@ public class Server{
 		public void run() {
 		
 			try(ServerSocket mysocket = new ServerSocket(5555);){
-		    System.out.println("Server is waiting for a client!");
-		  
-			
-		    while(true) {
-		
-				ClientThread c = new ClientThread(mysocket.accept(), count);
-				callback.accept("client has connected to server: " + "client #" + count);
-				clients.add(c);
-				c.start();
-				
-				count++;
-				
-			    }
-			}//end of try
-				catch(Exception e) {
-					callback.accept("Server socket did not launch");
-				}
-			}//end of while
+				System.out.println("Server is waiting for a client!");
+
+
+				while(true) {
+
+					Socket clientSocket = mysocket.accept();
+					ClientThread c = new ClientThread(clientSocket);
+					c.start();
+
+
+					}
+				}//end of try
+					catch(Exception e) {
+						callback.accept("Server socket did not launch");
+					}
+				}//end of while
 		}
 	
 
@@ -59,52 +56,63 @@ public class Server{
 			
 		
 			Socket connection;
-			int count;
+			String username; // stores connected client's username
 			ObjectInputStream in;
 			ObjectOutputStream out;
-			
-			ClientThread(Socket s, int count){
-				this.connection = s;
-				this.count = count;	
+
+			ClientThread(Socket s){
+				this.connection = s; // stores client's socket connection
 			}
-			
+
+			// method to send a message to all clients
 			public void updateClients(String message) {
-				for(int i = 0; i < clients.size(); i++) {
-					ClientThread t = clients.get(i);
+				for (ClientThread t : clients) { // iterates through all connected clients
 					try {
-					 t.out.writeObject(message);
+						t.out.writeObject(message); // sends message to each client
 					}
-					catch(Exception e) {}
+					catch (Exception e) {
+						e.printStackTrace(); // prints stack trace for exception thrown
+					}
 				}
 			}
 			
 			public void run(){
-					
+
 				try {
-					in = new ObjectInputStream(connection.getInputStream());
 					out = new ObjectOutputStream(connection.getOutputStream());
-					connection.setTcpNoDelay(true);	
-				}
-				catch(Exception e) {
-					System.out.println("Streams not open");
-				}
-				
-				updateClients("new client on server: client #"+count);
-					
-				 while(true) {
-					    try {
-					    	String data = in.readObject().toString();
-					    	callback.accept("client: " + count + " sent: " + data);
-					    	updateClients("client #"+count+" said: "+data);
-					    	
-					    	}
-					    catch(Exception e) {
-					    	callback.accept("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
-					    	updateClients("Client #"+count+" has left the server!");
-					    	clients.remove(this);
-					    	break;
-					    }
+					in = new ObjectInputStream(connection.getInputStream());
+					connection.setTcpNoDelay(true);
+
+					// read username as first piece of data from client
+					username = in.readObject().toString();
+
+					synchronized (clients) {
+						for (ClientThread client : clients) {
+							if (client.username != null && client.username.equals(username)) {
+								out.writeObject("Username is taken.");
+								return;
+							}
+						}
+						// adds new client thread to list of clients
+						clients.add(this);
 					}
+
+					callback.accept(username + " has connected to the server");
+
+					// notifies all clients about new connection
+					updateClients(username + " has joined server");
+
+					while (true) {
+						String data = in.readObject().toString();
+						callback.accept(username + " send: " + data); // process incoming data from client
+						updateClients(username + " said: " + data); // send received message to all clients
+					}
+				}
+				catch(Exception e){
+					callback.accept("Oops... Something went wrong with the connection for " + username);
+					updateClients(username + " has left the server!");
+					clients.remove(this); // removes client from list when disconnected
+				}
 				}//end of run
 			
 			
