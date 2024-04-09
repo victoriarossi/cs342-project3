@@ -18,37 +18,40 @@ public class Client extends Thread{
 	private Consumer<Serializable> callback;
 	
 	Client(Consumer<Serializable> call){
-	
 		callback = call;
 	}
 	
 	public void run() {
 		
 		try {
-		socketClient= new Socket("127.0.0.1",5555);
-	    out = new ObjectOutputStream(socketClient.getOutputStream());
-	    in = new ObjectInputStream(socketClient.getInputStream());
-	    socketClient.setTcpNoDelay(true);
-		}
-		catch(Exception e) {}
-		
-		while(true) {
-			 
-			try {
-			String message = in.readObject().toString();
-			callback.accept(message);
+			socketClient= new Socket("127.0.0.1",5555);
+			out = new ObjectOutputStream(socketClient.getOutputStream());
+			in = new ObjectInputStream(socketClient.getInputStream());
+			socketClient.setTcpNoDelay(true);
+
+			while (true) {
+				try {
+					Message message = (Message) in.readObject(); // reads incoming message object from server
+					callback.accept(message); // passes received Message object to callback for processing
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
-			catch(Exception e) {}
+
 		}
-	
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+
     }
-	
-	public void send(String data) {
+
+	// Method to send a Message object to the server
+	public void send(Message message) {
 		
 		try {
-			out.writeObject(data);
+			out.writeObject(message); // writes Message object to the ObjectOutputStream
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

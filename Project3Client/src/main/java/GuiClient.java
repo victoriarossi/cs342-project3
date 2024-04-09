@@ -6,25 +6,20 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.scene.control.Alert.AlertType;
 
 public class GuiClient extends Application{
-
-	TextField usernameField; // stores the username
-	Button connectButton; // button to connect user to server
 
 	TextField c1;
 	Button b1;
 	HashMap<String, Scene> sceneMap;
 	VBox clientBox;
 	Client clientConnection;
-	
+
 	ListView<String> listItems2;
 	
 	
@@ -36,9 +31,7 @@ public class GuiClient extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		clientConnection = new Client(data->{
 				Platform.runLater(()->{
-					if (data.toString().equals("Username is taken.")) {
-						showAlert("Error", "Username is taken. Please choose a different name.");
-					}
+					listItems2.getItems().add(data.toString());
 
 			});
 		});
@@ -46,15 +39,21 @@ public class GuiClient extends Application{
 		clientConnection.start();
 
 		listItems2 = new ListView<String>();
-		
+
 		c1 = new TextField();
 		b1 = new Button("Send");
-		b1.setOnAction(e->{clientConnection.send(c1.getText()); c1.clear();});
+		b1.setOnAction(e->{
+			String messageContent = c1.getText();
+			Message message = new Message("ChangeMe", messageContent, Message.MessageType.BROADCAST);
+			clientConnection.send(message);
+
+			c1.clear();
+		});
 		
 		sceneMap = new HashMap<String, Scene>();
 
 		sceneMap.put("client",  createClientGui());
-		sceneMap.put("clientLogin", createLoginScene());
+		sceneMap.put("clientLogin", createLoginScene()); // adds login screen to scene map
 		
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -65,63 +64,24 @@ public class GuiClient extends Application{
         });
 
 
-		primaryStage.setScene(sceneMap.get("clientLogin"));
+		primaryStage.setScene(sceneMap.get("client")); // starts the scene in the login scene
 		primaryStage.setTitle("Client");
 		primaryStage.show();
 		
 	}
 
 	private Scene createLoginScene() {
-		BorderPane layout = new BorderPane();
 
-		layout.setStyle("-fx-background-color: #DDC6A3");
+		VBox root = new VBox(10);
 
-		Label titleLabel = new Label("Enter Username");
-		titleLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: black");
-		BorderPane.setAlignment(titleLabel, Pos.CENTER);
-		layout.setTop(titleLabel);
-		layout.setPadding(new Insets(10, 0, 10, 0));
-
-		usernameField = new TextField();
-		usernameField.setPromptText("Enter Username Here");
-		usernameField.setPrefHeight(30);
-		usernameField.setMaxWidth(200);
-		layout.setCenter(usernameField);
-		BorderPane.setAlignment(usernameField, Pos.CENTER);
-
-		connectButton = new Button("Connect");
-		connectButton.setPrefHeight(30);
-		connectButton.setPrefWidth(100);
-		layout.setBottom(connectButton);
-		BorderPane.setAlignment(connectButton, Pos.CENTER);
-		connectButton.setOnAction(e -> handleConnect());
-
-		BorderPane.setAlignment(connectButton, Pos.CENTER);
-
-		return new Scene(layout, 450, 300);
+		// returns login scene
+		return new Scene(root,400, 300);
 	}
 
-	private void handleConnect() {
-		String username = usernameField.getText().trim();
-		if (!username.isEmpty()) {
-			clientConnection.send(username);
-		}
-		else {
-			showAlert("Error", "Username cannot be empty. Please try again.");
-		}
-	}
 
-	private void showAlert(String title, String message) {
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
-		usernameField.requestFocus();
-	}
 
 	public Scene createClientGui() {
-		
+
 		clientBox = new VBox(10, c1,b1,listItems2);
 		clientBox.setStyle("-fx-background-color: blue;"+"-fx-font-family: 'serif';");
 		return new Scene(clientBox, 400, 300);
