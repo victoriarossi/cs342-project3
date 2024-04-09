@@ -15,6 +15,9 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 public class GuiClient extends Application{
+	TextField usernameField = new TextField();
+
+	Button connectBtn = new Button("Connect");
 
 	TextField c1;
 	Button b1;
@@ -24,6 +27,10 @@ public class GuiClient extends Application{
 	ListView<String> listItems2;
 
 	Label connectionStatus;
+
+	String btnStyle = "-fx-background-color: #DDC6A3; -fx-text-fill: black; -fx-background-radius: 25px; -fx-padding: 10; -fx-cursor: hand";
+	String titleStyle = "-fx-font-size: 24; -fx-font-weight: bold";
+	String subtitleStyle = "-fx-font-size: 18; -fx-font-weight: bold";
 	
 	
 	public static void main(String[] args) {
@@ -32,19 +39,22 @@ public class GuiClient extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
 		clientConnection = new Client(data -> {
-				Message msg = (Message) data;
-				Platform.runLater(() -> {
-					if ("Ok Username".equals(msg.getMessageContent())) {
-						primaryStage.setScene(sceneMap.get("client"));
-					}
-					else if ("Taken Username".equals(msg.getMessageContent())) {
-						connectionStatus.setText("Username is taken. Try another one.");
-					}
-					else {
-						listItems2.getItems().add(msg.toString());
-					}
-				});
+			Message msg = (Message) data;
+			Platform.runLater(() -> {
+				if ("Ok Username".equals(msg.getMessageContent())) {
+					primaryStage.setScene(sceneMap.get("client"));
+				}
+				else if ("Taken Username".equals(msg.getMessageContent())) {
+					Alert alert = new Alert(Alert.AlertType.ERROR, "Username is taken. Try another one.");
+					alert.setHeaderText("Username Error");
+					alert.showAndWait();
+				}
+				else {
+					listItems2.getItems().add(msg.toString());
+				}
+			});
 		});
 							
 		clientConnection.start();
@@ -85,34 +95,82 @@ public class GuiClient extends Application{
 	private Scene createLoginScene(Stage primaryStage) {
 
 		Label title = new Label("Enter username:");
+		title.setStyle(titleStyle);
 
-		TextField usernameField = new TextField();
+		usernameField.setMaxWidth(200);
+		usernameField.setStyle("-fx-padding: 10; -fx-background-radius: 25px");
 
-		Button connectBtn = new Button("Connect");
 		connectBtn.setOnAction(e -> {
 			String usernameAttempt = usernameField.getText();
-			if (!usernameAttempt.trim().isEmpty()) {
+			if (!usernameAttempt.isEmpty()) {
 				clientConnection.setUsername(usernameAttempt);
-				connectionStatus.setText("");
 			}
 			else {
-				connectionStatus.setText("Username cannot be empty.");
+				showAlert("Username cannot be empty.", Alert.AlertType.ERROR);
 			}
 		});
 
-		VBox root = new VBox(10, title, usernameField, connectBtn);
-		root.setStyle("-fx-background-color: #DDC6A3");
+		connectBtn.setStyle(btnStyle);
+		VBox root = new VBox(40, title, usernameField, connectBtn);
+		root.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
+		root.setAlignment(Pos.CENTER);
 
 		// returns login scene
-		return new Scene(root,400, 300);
+		return new Scene(root,500, 400);
 	}
 
 	public Scene createClientGui() {
+		Label title = new Label("Input your message:");
+		title.setStyle(subtitleStyle + "; -fx-padding: 10");
 
-		clientBox = new VBox(10, c1,b1,listItems2);
-		clientBox.setStyle("-fx-background-color: blue;"+"-fx-font-family: 'serif';");
-		return new Scene(clientBox, 400, 300);
-		
+		TextField messageTextField = new TextField();
+		messageTextField.setMaxWidth(250);
+		messageTextField.setStyle("-fx-padding: 10; -fx-background-radius: 25px;");
+
+		Label sendTo = new Label("Send to: ");
+		sendTo.setStyle(subtitleStyle);
+
+		Button allUsers = new Button("All users");
+		Button oneUser = new Button("One user");
+		allUsers.setStyle(btnStyle);
+		oneUser.setStyle(btnStyle);
+		HBox btns = new HBox(20, allUsers, oneUser);
+		btns.setAlignment(Pos.CENTER);
+
+		allUsers.setOnAction( e -> {
+			String messageContent = messageTextField.getText();
+			String currUsername = clientConnection.getUsername();
+			Message msg = new Message(currUsername, messageContent, Message.MessageType.BROADCAST);
+			clientConnection.send(msg);
+			messageTextField.clear();
+		});
+
+		oneUser.setOnAction( e -> {
+			//something
+		});
+
+		allUsers.disableProperty().bind(messageTextField.textProperty().isEmpty());
+		oneUser.disableProperty().bind(messageTextField.textProperty().isEmpty());
+
+
+		clientBox = new VBox(20, title, messageTextField, sendTo, btns, listItems2);
+		clientBox.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
+		VBox.setMargin(clientBox, new Insets(30));
+		clientBox.setAlignment(Pos.CENTER);
+
+		return new Scene(clientBox, 500, 400);
+	}
+
+	private void showAlert(String message, Alert.AlertType type) {
+		Alert alert = new Alert(type, message);
+		alert.showAndWait();
+	}
+
+	public Scene optionsScreen(Stage stage){
+		VBox root = new VBox(40);
+		root.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
+		root.setAlignment(Pos.CENTER);
+		return new Scene(root,500, 400);
 	}
 
 }

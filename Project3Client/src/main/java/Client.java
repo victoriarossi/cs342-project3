@@ -11,7 +11,6 @@ public class Client extends Thread{
 	private String username;
 
 	Socket socketClient;
-	
 	ObjectOutputStream out;
 	ObjectInputStream in;
 
@@ -31,8 +30,6 @@ public class Client extends Thread{
 			in = new ObjectInputStream(socketClient.getInputStream());
 			socketClient.setTcpNoDelay(true);
 
-//			setUsername();
-
 			while (true) {
 				try {
 					Serializable data = (Serializable) in.readObject(); // reads incoming message object from server
@@ -48,7 +45,6 @@ public class Client extends Thread{
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-
     }
 
 	// Method to send a Message object to the server
@@ -70,6 +66,5 @@ public class Client extends Thread{
 	public String getUsername() {
 		return this.username;
 	}
-
 
 }

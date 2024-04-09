@@ -82,16 +82,15 @@ public class Server{
 					Message usernameMsg = (Message) in.readObject();
 					String initialName = usernameMsg.getUserID();
 
-					synchronized (clientID) {
-						if (!clientID.contains(initialName)) {
-							clientID.add(initialName);
-							clientName = initialName;
-							callback.accept(clientName + " has connected to server.");
-							out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
-						} else {
-							out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
-							return;
-						}
+//
+					if (!clientID.contains(initialName)) {
+						clientID.add(initialName);
+						clientName = initialName;
+						callback.accept(clientName + " has connected to server.");
+						out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
+					} else {
+						out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
+						return;
 					}
 
 
@@ -103,11 +102,9 @@ public class Server{
 					}
 				}
 				catch (Exception e) {
-					callback.accept(clientName + " has disconnected");
-					synchronized (clientID) {
-						clientID.remove(clientName);
-						clients.remove(this);
-					}
+					callback.accept(clientName + " has left the chat");
+					clientID.remove(clientName);
+					clients.remove(this);
 				}
 			}//end of run
 

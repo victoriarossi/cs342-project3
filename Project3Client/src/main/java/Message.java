@@ -58,7 +58,7 @@ public class Message implements Serializable {
     }
 
     public String toString(){
-        return "This is a message";
+        return "User: " + userID + " is sending: " + messageContent;
     }
 
 }
