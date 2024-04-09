@@ -21,6 +21,7 @@ public class Server{
 	ArrayList<String> clientID = new ArrayList<>();
 	TheServer server;
 	private Consumer<Serializable> callback;
+	String clientName = "";
 	
 	
 	Server(Consumer<Serializable> call){
@@ -41,7 +42,7 @@ public class Server{
 
 				while (true) {
 					ClientThread c = new ClientThread(mysocket.accept(), count);
-					callback.accept("client has connected to server: " + "client #" + count);
+//					callback.accept(clientName + " has connected to server: ");
 					clients.add(c);
 					c.start();
 					count++;
@@ -53,7 +54,6 @@ public class Server{
 
 		}
 	}
-	
 
 		class ClientThread extends Thread{
 			int count;
@@ -64,10 +64,52 @@ public class Server{
 
 			String clientName = "";
 
+
+
 			ClientThread(Socket s, int count){
 				this.connection = s; // stores client's socket connection
 				this.count = count;
 			}
+
+			
+			public void run(){
+
+				try {
+					in = new ObjectInputStream(connection.getInputStream());
+					out = new ObjectOutputStream(connection.getOutputStream());
+					connection.setTcpNoDelay(true);
+
+					Message usernameMsg = (Message) in.readObject();
+					String initialName = usernameMsg.getUserID();
+
+					synchronized (clientID) {
+						if (!clientID.contains(initialName)) {
+							clientID.add(initialName);
+							clientName = initialName;
+							callback.accept(clientName + " has connected to server.");
+							out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
+						} else {
+							out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
+							return;
+						}
+					}
+
+
+					while (true) {
+						// reads message object from the client
+						Message data = (Message) in.readObject();
+						callback.accept(clientName + " sent: " + data.getMessageContent());
+						updateClients(data);
+					}
+				}
+				catch (Exception e) {
+					callback.accept(clientName + " has disconnected");
+					synchronized (clientID) {
+						clientID.remove(clientName);
+						clients.remove(this);
+					}
+				}
+			}//end of run
 
 			// method to send a message to all clients
 			public void updateClients(Message message) {
@@ -78,54 +120,6 @@ public class Server{
 					catch(Exception e) {e.printStackTrace();}
 				}
 			}
-			
-			public void run(){
-
-				try {
-					in = new ObjectInputStream(connection.getInputStream());
-					out = new ObjectOutputStream(connection.getOutputStream());
-					connection.setTcpNoDelay(true);
-
-
-					while (clientName == "") {
-						try {
-							Message usernameMsg = (Message) in.readObject();
-							String initialName = usernameMsg.getUserID();
-
-							if (!clientID.contains(initialName)) {
-								clientID.add(initialName);
-								clientName = initialName;
-								Message data = new Message("Server", "Ok Username", Message.MessageType.PRIVATE);
-								out.writeObject(data);
-								updateClients(data);
-							} else {
-								Message data = new Message("Server", "Taken Username", Message.MessageType.PRIVATE);
-								out.writeObject(data);
-								updateClients(data);
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-
-					while (true) {
-						try {
-							// reads message object from the client
-							Message data = (Message) in.readObject();
-							callback.accept(clientName + " sent: " + data.getMessageContent());
-							updateClients(data);
-						} catch (Exception e) {
-							callback.accept(clientName + " has disconnected.");
-							clientID.remove(clientName);
-							clients.remove(this);
-							break;
-						}
-					}
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-			}//end of run
 
 
 		}//end of client thread

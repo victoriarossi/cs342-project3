@@ -22,6 +22,8 @@ public class GuiClient extends Application{
 	VBox clientBox;
 	Client clientConnection;
 	ListView<String> listItems2;
+
+	Label connectionStatus;
 	
 	
 	public static void main(String[] args) {
@@ -32,10 +34,17 @@ public class GuiClient extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		clientConnection = new Client(data -> {
 				Message msg = (Message) data;
-				Platform.runLater(()->{
-					listItems2.getItems().add(msg.toString());
-
-			});
+				Platform.runLater(() -> {
+					if ("Ok Username".equals(msg.getMessageContent())) {
+						primaryStage.setScene(sceneMap.get("client"));
+					}
+					else if ("Taken Username".equals(msg.getMessageContent())) {
+						connectionStatus.setText("Username is taken. Try another one.");
+					}
+					else {
+						listItems2.getItems().add(msg.toString());
+					}
+				});
 		});
 							
 		clientConnection.start();
@@ -46,7 +55,8 @@ public class GuiClient extends Application{
 		b1 = new Button("Send");
 		b1.setOnAction(e->{
 			String messageContent = c1.getText();
-			Message message = new Message("ChangeMe", messageContent, Message.MessageType.BROADCAST);
+			String currUsername = clientConnection.getUsername();
+			Message message = new Message(currUsername, messageContent, Message.MessageType.BROADCAST);
 			clientConnection.send(message);
 
 			c1.clear();
@@ -81,11 +91,13 @@ public class GuiClient extends Application{
 		Button connectBtn = new Button("Connect");
 		connectBtn.setOnAction(e -> {
 			String usernameAttempt = usernameField.getText();
-			if (!usernameAttempt.isEmpty()) {
-				clientConnection.send(new Message(usernameAttempt, "checkUsername", Message.MessageType.PRIVATE));
+			if (!usernameAttempt.trim().isEmpty()) {
+				clientConnection.setUsername(usernameAttempt);
+				connectionStatus.setText("");
 			}
-//			clientConnection.send(new Message(usernameAttempt, " joined the server", Message.MessageType.PRIVATE));
-			primaryStage.setScene(sceneMap.get("client"));
+			else {
+				connectionStatus.setText("Username cannot be empty.");
+			}
 		});
 
 		VBox root = new VBox(10, title, usernameField, connectBtn);
@@ -94,17 +106,6 @@ public class GuiClient extends Application{
 		// returns login scene
 		return new Scene(root,400, 300);
 	}
-
-//	private void handleServerMessage(Serializable data, Stage primaryStage) {
-//		if (data instanceof Message) {
-//			Message received = (Message) data;
-//			if ("Ok Username".equals(received.getMessageContent())) {
-//				this.usernameAttempt =
-//			}
-//		}
-//	}
-
-
 
 	public Scene createClientGui() {
 

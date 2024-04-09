@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 public class Client extends Thread{
 
 	private String username;
-	
+
 	Socket socketClient;
 	
 	ObjectOutputStream out;
@@ -24,21 +24,23 @@ public class Client extends Thread{
 	}
 	
 	public void run() {
-		
+
 		try {
 			socketClient= new Socket("127.0.0.1",5555);
 			out = new ObjectOutputStream(socketClient.getOutputStream());
 			in = new ObjectInputStream(socketClient.getInputStream());
 			socketClient.setTcpNoDelay(true);
 
+//			setUsername();
+
 			while (true) {
 				try {
-					Message message = (Message) in.readObject(); // reads incoming message object from server
-//					clientIDs = message.getClients();
-					callback.accept(message); // passes received Message object to callback for processing
+					Serializable data = (Serializable) in.readObject(); // reads incoming message object from server
+					callback.accept(data); // passes received Message object to callback for processing
 				}
 				catch (Exception e) {
 					e.printStackTrace();
+					break;
 				}
 			}
 
@@ -59,20 +61,14 @@ public class Client extends Thread{
 		}
 	}
 
-	private void setUsername() {
-		String initialName = "CoolGuy24";
-
-		Message usernameMsg = new Message(initialName, "checkUser", Message.MessageType.BROADCAST);
+	public void setUsername(String username) {
+		this.username = username;
+		Message usernameMsg = new Message(username, "checkUser", Message.MessageType.BROADCAST);
+		send(usernameMsg);
 	}
 
-	public boolean validUser(String username){
-		// returns false if the user does not input a username
-		if (username.isEmpty()) {
-			return false;
-		}
-//		run();
-
-		return false;
+	public String getUsername() {
+		return this.username;
 	}
 
 
