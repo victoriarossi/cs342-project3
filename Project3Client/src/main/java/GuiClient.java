@@ -1,4 +1,3 @@
-import java.io.Serializable;
 import java.util.HashMap;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -7,12 +6,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 
 public class GuiClient extends Application{
 	TextField usernameField = new TextField();
@@ -28,7 +31,7 @@ public class GuiClient extends Application{
 
 	Label connectionStatus;
 
-	String btnStyle = "-fx-background-color: #DDC6A3; -fx-text-fill: black; -fx-background-radius: 25px; -fx-padding: 10; -fx-cursor: hand";
+	String btnStyle = "-fx-background-color: #DDC6A3; -fx-text-fill: black; -fx-background-radius: 25px; -fx-padding: 14; -fx-cursor: hand; -fx-font-size: 18";
 	String titleStyle = "-fx-font-size: 24; -fx-font-weight: bold";
 	String subtitleStyle = "-fx-font-size: 18; -fx-font-weight: bold";
 	
@@ -44,7 +47,7 @@ public class GuiClient extends Application{
 			Message msg = (Message) data;
 			Platform.runLater(() -> {
 				if ("Ok Username".equals(msg.getMessageContent())) {
-					primaryStage.setScene(sceneMap.get("client"));
+					primaryStage.setScene(sceneMap.get("options"));
 				}
 				else if ("Taken Username".equals(msg.getMessageContent())) {
 					Alert alert = new Alert(Alert.AlertType.ERROR, "Username is taken. Try another one.");
@@ -74,8 +77,9 @@ public class GuiClient extends Application{
 		
 		sceneMap = new HashMap<String, Scene>();
 
-		sceneMap.put("client",  createClientGui());
+		sceneMap.put("client",  createClientGui(primaryStage));
 		sceneMap.put("clientLogin", createLoginScene(primaryStage)); // adds login screen to scene map
+		sceneMap.put("options", createOptionsScreen(primaryStage)); // adds the options screen to scene map
 		
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -119,7 +123,9 @@ public class GuiClient extends Application{
 		return new Scene(root,500, 400);
 	}
 
-	public Scene createClientGui() {
+	public Scene createClientGui(Stage primaryStage) {
+		BorderPane pane =  new BorderPane();
+
 		Label title = new Label("Input your message:");
 		title.setStyle(subtitleStyle + "; -fx-padding: 10");
 
@@ -152,13 +158,31 @@ public class GuiClient extends Application{
 		allUsers.disableProperty().bind(messageTextField.textProperty().isEmpty());
 		oneUser.disableProperty().bind(messageTextField.textProperty().isEmpty());
 
+		// Create back button
+		Image home = new Image("back_arrow.png");
+		ImageView homeView = new ImageView(home);
+		homeView.setFitHeight(15);
+		homeView.setFitWidth(15);
+		Button backBtn = new Button();
+		backBtn.setOnAction( e -> {
+			primaryStage.setScene(sceneMap.get("options"));
+		});
+		backBtn.setGraphic(homeView);
+		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
+
+		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
+		pane.setTop(backBtn);
+		Color backgroundColor = Color.web("#F4DAB3");
+		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
 		clientBox = new VBox(20, title, messageTextField, sendTo, btns, listItems2);
 		clientBox.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
 		VBox.setMargin(clientBox, new Insets(30));
 		clientBox.setAlignment(Pos.CENTER);
 
-		return new Scene(clientBox, 500, 400);
+		pane.setCenter(clientBox);
+
+		return new Scene(pane, 500, 400);
 	}
 
 	private void showAlert(String message, Alert.AlertType type) {
@@ -166,8 +190,19 @@ public class GuiClient extends Application{
 		alert.showAndWait();
 	}
 
-	public Scene optionsScreen(Stage stage){
-		VBox root = new VBox(40);
+	public Scene createOptionsScreen(Stage primaryStage){
+		Button sendMessage = new Button("Send Message");
+		Button users = new Button("View All Users");
+		Button messages = new Button("View Messages");
+		sendMessage.setStyle(btnStyle);
+		users.setStyle(btnStyle);
+		messages.setStyle(btnStyle);
+
+		sendMessage.setOnAction(e -> {
+			primaryStage.setScene(sceneMap.get("client"));
+		});
+
+		VBox root = new VBox(40, sendMessage, users, messages);
 		root.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
 		root.setAlignment(Pos.CENTER);
 		return new Scene(root,500, 400);
