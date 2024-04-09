@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.HashMap;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -9,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -19,7 +21,6 @@ public class GuiClient extends Application{
 	HashMap<String, Scene> sceneMap;
 	VBox clientBox;
 	Client clientConnection;
-
 	ListView<String> listItems2;
 	
 	
@@ -29,9 +30,10 @@ public class GuiClient extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		clientConnection = new Client(data->{
+		clientConnection = new Client(data -> {
+				Message msg = (Message) data;
 				Platform.runLater(()->{
-					listItems2.getItems().add(data.toString());
+					listItems2.getItems().add(msg.toString());
 
 			});
 		});
@@ -53,7 +55,7 @@ public class GuiClient extends Application{
 		sceneMap = new HashMap<String, Scene>();
 
 		sceneMap.put("client",  createClientGui());
-		sceneMap.put("clientLogin", createLoginScene()); // adds login screen to scene map
+		sceneMap.put("clientLogin", createLoginScene(primaryStage)); // adds login screen to scene map
 		
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -64,19 +66,43 @@ public class GuiClient extends Application{
         });
 
 
-		primaryStage.setScene(sceneMap.get("client")); // starts the scene in the login scene
+		primaryStage.setScene(sceneMap.get("clientLogin")); // starts the scene in the login scene
 		primaryStage.setTitle("Client");
 		primaryStage.show();
 		
 	}
 
-	private Scene createLoginScene() {
+	private Scene createLoginScene(Stage primaryStage) {
 
-		VBox root = new VBox(10);
+		Label title = new Label("Enter username:");
+
+		TextField usernameField = new TextField();
+
+		Button connectBtn = new Button("Connect");
+		connectBtn.setOnAction(e -> {
+			String usernameAttempt = usernameField.getText();
+			if (!usernameAttempt.isEmpty()) {
+				clientConnection.send(new Message(usernameAttempt, "checkUsername", Message.MessageType.PRIVATE));
+			}
+//			clientConnection.send(new Message(usernameAttempt, " joined the server", Message.MessageType.PRIVATE));
+			primaryStage.setScene(sceneMap.get("client"));
+		});
+
+		VBox root = new VBox(10, title, usernameField, connectBtn);
+		root.setStyle("-fx-background-color: #DDC6A3");
 
 		// returns login scene
 		return new Scene(root,400, 300);
 	}
+
+//	private void handleServerMessage(Serializable data, Stage primaryStage) {
+//		if (data instanceof Message) {
+//			Message received = (Message) data;
+//			if ("Ok Username".equals(received.getMessageContent())) {
+//				this.usernameAttempt =
+//			}
+//		}
+//	}
 
 
 

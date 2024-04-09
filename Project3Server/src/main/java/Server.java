@@ -18,6 +18,7 @@ public class Server{
 	int count = 1;
 
 	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
+	ArrayList<String> clientID = new ArrayList<>();
 	TheServer server;
 	private Consumer<Serializable> callback;
 	
@@ -43,7 +44,6 @@ public class Server{
 					callback.accept("client has connected to server: " + "client #" + count);
 					clients.add(c);
 					c.start();
-
 					count++;
 				}
 			}//end of try
@@ -61,6 +61,8 @@ public class Server{
 			Socket connection;
 			ObjectInputStream in;
 			ObjectOutputStream out;
+
+			String clientName = "";
 
 			ClientThread(Socket s, int count){
 				this.connection = s; // stores client's socket connection
@@ -83,33 +85,52 @@ public class Server{
 					in = new ObjectInputStream(connection.getInputStream());
 					out = new ObjectOutputStream(connection.getOutputStream());
 					connection.setTcpNoDelay(true);
-				}
-				catch(Exception e) {
-					System.out.println("Streams not open");
-				}
 
-				// creates welcome message for new clients (CHANGE)
-				Message welcomeMessage = new Message("Server", "New client on server: client #" + count, Message.MessageType.BROADCAST);
-				updateClients(welcomeMessage);
 
-				while(true) {
-					try {
-						// reads message object from the client
-						Message data = (Message) in.readObject();
-						callback.accept("client: " + count + " sent: " + data.getMessageContent());
-						updateClients(data);
+					while (clientName == "") {
+						try {
+							Message usernameMsg = (Message) in.readObject();
+							String initialName = usernameMsg.getUserID();
 
+							if (!clientID.contains(initialName)) {
+								clientID.add(initialName);
+								clientName = initialName;
+								Message data = new Message("Server", "Ok Username", Message.MessageType.PRIVATE);
+								out.writeObject(data);
+								updateClients(data);
+							} else {
+								Message data = new Message("Server", "Taken Username", Message.MessageType.PRIVATE);
+								out.writeObject(data);
+								updateClients(data);
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
-					catch(Exception e) {
-						callback.accept("OOOOPPs...Something wrong with the socket from client: " + count + "....closing down!");
-						clients.remove(this);
-						break;
+
+					while (true) {
+						try {
+							// reads message object from the client
+							Message data = (Message) in.readObject();
+							callback.accept(clientName + " sent: " + data.getMessageContent());
+							updateClients(data);
+						} catch (Exception e) {
+							callback.accept(clientName + " has disconnected.");
+							clientID.remove(clientName);
+							clients.remove(this);
+							break;
+						}
 					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
 				}
 			}//end of run
 
 
 		}//end of client thread
+
+
 }
 
 

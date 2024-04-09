@@ -3,17 +3,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.function.Consumer;
-
-
 
 public class Client extends Thread{
 
+	private String username;
 	
 	Socket socketClient;
 	
 	ObjectOutputStream out;
 	ObjectInputStream in;
+
+	ArrayList<String> clientIDs;
 	
 	private Consumer<Serializable> callback;
 	
@@ -32,6 +34,7 @@ public class Client extends Thread{
 			while (true) {
 				try {
 					Message message = (Message) in.readObject(); // reads incoming message object from server
+//					clientIDs = message.getClients();
 					callback.accept(message); // passes received Message object to callback for processing
 				}
 				catch (Exception e) {
@@ -54,6 +57,22 @@ public class Client extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void setUsername() {
+		String initialName = "CoolGuy24";
+
+		Message usernameMsg = new Message(initialName, "checkUser", Message.MessageType.BROADCAST);
+	}
+
+	public boolean validUser(String username){
+		// returns false if the user does not input a username
+		if (username.isEmpty()) {
+			return false;
+		}
+//		run();
+
+		return false;
 	}
 
 

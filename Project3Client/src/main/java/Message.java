@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Message implements Serializable {
     static final long serialVersionUID = 42L;
@@ -6,6 +7,7 @@ public class Message implements Serializable {
     private String userID; // ID of user sending the message
     private String messageContent; // content of the message
     private MessageType messageType; // type of message (BROADCAST = ALL USERS OR PRIVATE = SINGLE USER)
+    private ArrayList<String> clientIDs;
 
     // Constructor to initialize message object with userID, message content, and type of message
     public Message(String userID, String messageContent, MessageType messageType) {
@@ -44,9 +46,19 @@ public class Message implements Serializable {
         this.messageType = messageType;
     }
 
+    //getter to retrieve clients usernames
+    public ArrayList<String> getClients(){
+        return clientIDs;
+    }
+
     // enum defining possible types of messages
     enum MessageType {
         BROADCAST, // Message for all clients
         PRIVATE // Message for 1 specific client
     }
+
+    public String toString(){
+        return "This is a message";
+    }
+
 }
