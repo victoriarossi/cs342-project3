@@ -31,6 +31,7 @@ public class GuiClient extends Application{
 
 	Label connectionStatus;
 
+	// styling strings for different UI
 	String btnStyle = "-fx-background-color: #DDC6A3; -fx-text-fill: black; -fx-background-radius: 25px; -fx-padding: 14; -fx-cursor: hand; -fx-font-size: 18";
 	String titleStyle = "-fx-font-size: 24; -fx-font-weight: bold";
 	String subtitleStyle = "-fx-font-size: 18; -fx-font-weight: bold";
@@ -42,7 +43,7 @@ public class GuiClient extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-
+		// initialize client connection and setup receiving messages
 		clientConnection = new Client(data -> {
 			Message msg = (Message) data;
 			Platform.runLater(() -> {
@@ -50,22 +51,20 @@ public class GuiClient extends Application{
 					primaryStage.setScene(sceneMap.get("options"));
 				}
 				else if ("Taken Username".equals(msg.getMessageContent())) {
-					Alert alert = new Alert(Alert.AlertType.ERROR, "Username is taken. Try another one.");
-					alert.setHeaderText("Username Error");
-					alert.showAndWait();
+					showAlert("Username is taken. Try another one.", Alert.AlertType.ERROR);
 				}
 				else {
 					listItems2.getItems().add(msg.toString());
 				}
 			});
 		});
-							
+
 		clientConnection.start();
 
 		listItems2 = new ListView<String>();
 
-		c1 = new TextField();
-		b1 = new Button("Send");
+		c1 = new TextField(); // input field for messages
+		b1 = new Button("Send"); // send button for messages
 		b1.setOnAction(e->{
 			String messageContent = c1.getText();
 			String currUsername = clientConnection.getUsername();
@@ -74,9 +73,9 @@ public class GuiClient extends Application{
 
 			c1.clear();
 		});
-		
-		sceneMap = new HashMap<String, Scene>();
 
+		// scene map for different scenes
+		sceneMap = new HashMap<String, Scene>();
 		sceneMap.put("client",  createClientGui(primaryStage));
 		sceneMap.put("clientLogin", createLoginScene(primaryStage)); // adds login screen to scene map
 		sceneMap.put("options", createOptionsScreen(primaryStage)); // adds the options screen to scene map
@@ -96,6 +95,8 @@ public class GuiClient extends Application{
 		
 	}
 
+
+	// creates the initial login scene
 	private Scene createLoginScene(Stage primaryStage) {
 
 		Label title = new Label("Enter username:");
@@ -104,6 +105,7 @@ public class GuiClient extends Application{
 		usernameField.setMaxWidth(200);
 		usernameField.setStyle("-fx-padding: 10; -fx-background-radius: 25px");
 
+		// handles connect button action. Does not allow taken username or empty username
 		connectBtn.setOnAction(e -> {
 			String usernameAttempt = usernameField.getText();
 			if (!usernameAttempt.isEmpty()) {
@@ -123,6 +125,7 @@ public class GuiClient extends Application{
 		return new Scene(root,500, 400);
 	}
 
+	// creates main client UI
 	public Scene createClientGui(Stage primaryStage) {
 		BorderPane pane =  new BorderPane();
 
@@ -185,11 +188,15 @@ public class GuiClient extends Application{
 		return new Scene(pane, 500, 400);
 	}
 
+
+	// shows popup for invalid usernames
 	private void showAlert(String message, Alert.AlertType type) {
 		Alert alert = new Alert(type, message);
+		alert.setHeaderText(null);
 		alert.showAndWait();
 	}
 
+	// creates options scene
 	public Scene createOptionsScreen(Stage primaryStage){
 		Button sendMessage = new Button("Send Message");
 		Button users = new Button("View All Users");
@@ -198,6 +205,7 @@ public class GuiClient extends Application{
 		users.setStyle(btnStyle);
 		messages.setStyle(btnStyle);
 
+		// when you click send, changes the scene
 		sendMessage.setOnAction(e -> {
 			primaryStage.setScene(sceneMap.get("client"));
 		});

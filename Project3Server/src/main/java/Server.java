@@ -8,14 +8,9 @@ import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.scene.control.ListView;
-/*
- * Clicker: A: I really get it    B: No idea what you are talking about
- * C: kind of following
- */
+
 
 public class Server{
-
-	int count = 1;
 
 	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
 	ArrayList<String> clientID = new ArrayList<>();
@@ -39,13 +34,11 @@ public class Server{
 			try (ServerSocket mysocket = new ServerSocket(5555);) {
 				System.out.println("Server is waiting for a client!");
 
-
+				// keeps accepting new client connections
 				while (true) {
-					ClientThread c = new ClientThread(mysocket.accept(), count);
-//					callback.accept(clientName + " has connected to server: ");
+					ClientThread c = new ClientThread(mysocket.accept());
 					clients.add(c);
 					c.start();
-					count++;
 				}
 			}//end of try
 			catch (Exception e) {
@@ -56,7 +49,6 @@ public class Server{
 	}
 
 		class ClientThread extends Thread{
-			int count;
 		
 			Socket connection;
 			ObjectInputStream in;
@@ -65,10 +57,8 @@ public class Server{
 			String clientName = "";
 
 
-
-			ClientThread(Socket s, int count){
+			ClientThread(Socket s){
 				this.connection = s; // stores client's socket connection
-				this.count = count;
 			}
 
 			
@@ -79,32 +69,39 @@ public class Server{
 					out = new ObjectOutputStream(connection.getOutputStream());
 					connection.setTcpNoDelay(true);
 
-					Message usernameMsg = (Message) in.readObject();
-					String initialName = usernameMsg.getUserID();
-
-//
-					if (!clientID.contains(initialName)) {
-						clientID.add(initialName);
-						clientName = initialName;
-						callback.accept(clientName + " has connected to server.");
-						out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
-					} else {
-						out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
-						return;
-					}
-
-
+					// processes incoming messages from client
 					while (true) {
-						// reads message object from the client
-						Message data = (Message) in.readObject();
-						callback.accept(clientName + " sent: " + data.getMessageContent());
-						updateClients(data);
+						Message message = (Message) in.readObject();
+
+						// checks if the message is a username check request
+						if (message.getMessageType() == Message.MessageType.BROADCAST && "checkUser".equals(message.getMessageContent())) {
+							String initialName = message.getUserID();
+							if (!clientID.contains(initialName)) {
+								clientID.add(initialName);
+								clientName = initialName;
+								callback.accept(clientName + " has connected to server.");
+								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
+							} else {
+								out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
+							}
+						}
+						else {
+							// handles regular messages
+							callback.accept(clientName + " sent: " + message.getMessageContent());
+							updateClients(message);
+						}
 					}
 				}
 				catch (Exception e) {
 					callback.accept(clientName + " has left the chat");
-					clientID.remove(clientName);
-					clients.remove(this);
+
+					synchronized (clientID) {
+						clientID.remove(clientName);
+					}
+
+					synchronized (clients) {
+						clients.remove(this);
+					}
 				}
 			}//end of run
 
@@ -117,15 +114,7 @@ public class Server{
 					catch(Exception e) {e.printStackTrace();}
 				}
 			}
-
-
 		}//end of client thread
-
-
 }
-
-
-	
-	
 
 	

@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 public class Client extends Thread{
 
-	private String username;
+	private String username; // stores clients username
 
 	Socket socketClient;
 	ObjectOutputStream out;
@@ -30,14 +30,14 @@ public class Client extends Thread{
 			in = new ObjectInputStream(socketClient.getInputStream());
 			socketClient.setTcpNoDelay(true);
 
-			while (true) {
+			while (true) { // keeps listening for messages from the server
 				try {
 					Serializable data = (Serializable) in.readObject(); // reads incoming message object from server
 					callback.accept(data); // passes received Message object to callback for processing
 				}
 				catch (Exception e) {
 					e.printStackTrace();
-					break;
+					break; // exits loop of an error occurs
 				}
 			}
 
@@ -57,12 +57,14 @@ public class Client extends Thread{
 		}
 	}
 
+	// sets username for this client and sends a username check request to the server
 	public void setUsername(String username) {
 		this.username = username;
 		Message usernameMsg = new Message(username, "checkUser", Message.MessageType.BROADCAST);
 		send(usernameMsg);
 	}
 
+	// getter for client's username
 	public String getUsername() {
 		return this.username;
 	}
