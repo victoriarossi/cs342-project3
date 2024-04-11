@@ -257,7 +257,7 @@ public class GuiClient extends Application{
 		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
 
 		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
-		pane.setTop(backBtn);
+
 		Color backgroundColor = Color.web("#F4DAB3");
 		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 
@@ -268,8 +268,9 @@ public class GuiClient extends Application{
 		users.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
 		VBox.setMargin(users, new Insets(30));
 		users.setAlignment(Pos.CENTER);
+		displayListUsers.setMaxWidth(400);
+		displayListUsers.setMaxHeight(250);
 		pane.setCenter(users);
-
 		return new Scene(pane, 500, 400);
 	}
 
