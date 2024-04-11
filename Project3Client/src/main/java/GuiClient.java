@@ -184,6 +184,7 @@ public class GuiClient extends Application{
 
 		oneUser.setOnAction( e -> {
 			messageContent = messageTextField.getText();
+			System.out.println(messageContent);
 			currUsername = clientConnection.getUsername();
 			primaryStage.setScene(sceneMap.get("selectUser"));
 		});
@@ -359,7 +360,7 @@ public class GuiClient extends Application{
 		storeUsersInListView.addAll(msg.getListOfUsers());
 		displayListUsers.setItems(storeUsersInListView);
 		for(String user: msg.getListOfUsers()) {
-			if(!user.equals(currUsername))
+			if(!user.equals(currUsername) && !displayListItems.getItems().contains(user))
 				displayListItems.getItems().add(user);
 		}
 	}

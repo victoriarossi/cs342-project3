@@ -109,12 +109,24 @@ public class Server{
 
 			// method to send a message to all clients
 			public void updateClients(Message message) {
-				for(ClientThread t : clients) {
-					if(t.clientName != "") {
-						try {
-							t.out.writeObject(message);
-						} catch (Exception e) {
-							e.printStackTrace();
+				if(message.getMessageType() == Message.MessageType.BROADCAST) {
+					for(ClientThread t : clients) {
+						if(t.clientName != "") {
+							try {
+								t.out.writeObject(message);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				} else {
+					for(ClientThread t : clients) {
+						if(t.clientName == message.getUserIDReceiver()) {
+							try {
+								t.out.writeObject(message);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					}
 				}
