@@ -53,41 +53,20 @@ public class GuiClient extends Application{
 			Message msg = (Message) data;
 			Platform.runLater(() -> {
 				if ("Ok Username".equals(msg.getMessageContent())) {
-					System.out.println("GOT A MESSAGE: " + msg.getMessageContent() + " FROM " + msg.getUserID());
-					// clear the listView
-					displayListUsers.getItems().removeAll(storeUsersInListView);
-					storeUsersInListView.clear();
-					// add the users to the listView
-					if(msg.getListOfUsers() != null) {
-						for (String user : msg.getListOfUsers()) {
-							storeUsersInListView.add(user);
-						}
-					}
-					// add the list view to the observable list
-					displayListUsers.setItems(storeUsersInListView);
+					// updates the user list
+					updateUserList(msg);
 					primaryStage.setScene(sceneMap.get("options"));
 				}
 				else if ("Taken Username".equals(msg.getMessageContent())) {
 					showAlert("Username is taken. Try another one.", Alert.AlertType.ERROR);
 				}
 				else {
-					// add the messages to the listView
-					listItems2.getItems().add(msg.toString());
-					// clear the listView
-					displayListUsers.getItems().removeAll(storeUsersInListView);
-					storeUsersInListView.clear();
-					System.out.println("GOT A MESSAGE: " + msg.getMessageContent() + " FROM " + msg.getUserID());
-					System.out.println("USERS LIST: " + msg.getListOfUsers());
-					// add the users to the listView
-					if(msg.getListOfUsers() != null) {
-						for (String user : msg.getListOfUsers()) {
-							storeUsersInListView.add(user);
-						}
+					// updates the user list as long as it contains users
+					if (msg.getListOfUsers() != null) {
+						updateUserList(msg);
 					}
-					// add the list view to the observable list
-					displayListUsers.setItems(storeUsersInListView);
+					listItems2.getItems().add(msg.toString());
 				}
-
 			});
 		});
 
@@ -287,5 +266,12 @@ public class GuiClient extends Application{
 		pane.setCenter(users);
 
 		return new Scene(pane, 500, 400);
+	}
+
+	// helper function to update the user list
+	private void updateUserList(Message msg) {
+		storeUsersInListView.clear();
+		storeUsersInListView.addAll(msg.getListOfUsers());
+		displayListUsers.setItems(storeUsersInListView);
 	}
 }

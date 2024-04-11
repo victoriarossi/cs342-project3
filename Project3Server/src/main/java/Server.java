@@ -81,8 +81,8 @@ public class Server{
 								clientName = initialName;
 								callback.accept(clientName + " has connected to server.");
 								System.out.println("CLIENTS WHEN NEW USER ADDED: " + clientID);
-								updateClients(new Message("Server", "New User", Message.MessageType.BROADCAST, clientID));
-								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE,clientID));
+								updateClients(new Message("Server", "New User", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
+								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE,new ArrayList<>(clientID)));
 							} else {
 								out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
 							}
