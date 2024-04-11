@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.scene.image.Image;
@@ -58,7 +59,7 @@ public class GuiClient extends Application{
 					primaryStage.setScene(sceneMap.get("options"));
 				}
 				else if ("Taken Username".equals(msg.getMessageContent())) {
-					showAlert("Username is taken. Try another one.", Alert.AlertType.ERROR);
+					showAlert("Be original, Professor McCarty dislikes copycats!", primaryStage);
 				}
 				else if(!msg.getUserID().equals("Server")){
 					// updates the user list as long as it contains users
@@ -132,7 +133,7 @@ public class GuiClient extends Application{
 				clientConnection.setUsername(usernameAttempt);
 			}
 			else {
-				showAlert("Username cannot be empty.", Alert.AlertType.ERROR);
+				showAlert("Professor McCarty can't grade invisible students!", primaryStage);
 			}
 		});
 
@@ -210,10 +211,28 @@ public class GuiClient extends Application{
 
 
 	// shows popup for invalid usernames
-	private void showAlert(String message, Alert.AlertType type) {
-		Alert alert = new Alert(type, message);
-		alert.setHeaderText(null);
-		alert.showAndWait();
+	private void showAlert(String message, Stage primaryStage) {
+
+		VBox root = new VBox(20);
+		root.setAlignment(Pos.CENTER);
+		root.setStyle("-fx-background-color: #ffcccc");
+
+		Label header = new Label(message);
+		header.setFont(new Font("Arial", 16));
+		header.setStyle("-fx-text-fill: #550000");
+
+		Button returnBtn = new Button("I understand");
+		returnBtn.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-padding: 10px; -fx-cursor: hand; -fx-border-radius: 5px; -fx-background-radius: 5px");
+		returnBtn.setOnAction(e -> {
+			primaryStage.setScene(sceneMap.get("clientLogin"));
+		});
+
+		root.getChildren().addAll(header, returnBtn);
+
+		Scene errorScene = new Scene(root, 400, 300);
+		primaryStage.setScene(errorScene);
+		primaryStage.show();
+
 	}
 
 	// creates options scene
