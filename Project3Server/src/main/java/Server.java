@@ -13,7 +13,7 @@ import javafx.scene.control.ListView;
 public class Server{
 
 	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
-	ArrayList<String> clientID = new ArrayList<>();
+	static ArrayList<String> clientID = new ArrayList<>();
 	TheServer server;
 	private Consumer<Serializable> callback;
 	String clientName = "";
@@ -80,24 +80,29 @@ public class Server{
 								clientID.add(initialName);
 								clientName = initialName;
 								callback.accept(clientName + " has connected to server.");
-								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE));
+								System.out.println("CLIENTS WHEN NEW USER ADDED: " + clientID);
+								updateClients(new Message("Server", "New User", Message.MessageType.BROADCAST, clientID));
+								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE,clientID));
 							} else {
 								out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
 							}
 						}
 						else {
 							// handles regular messages
+//							message.setListOfUsers(clientID);
+							System.out.println("CLIENTS WHEN SENDING REGULAR MESSAGES: " + clientID);
 							callback.accept(clientName + " sent: " + message.getMessageContent());
-							updateClients(message);
+							updateClients(new Message(message, clientID));
 						}
 					}
 				}
 				catch (Exception e) {
-					callback.accept(clientName + " has left the chat");
+					callback.accept(clientName + " has left the chat.");
 
 					synchronized (clientID) {
 						clientID.remove(clientName);
 					}
+					updateClients(new Message("Server", "User left", Message.MessageType.BROADCAST, clientID));
 
 					synchronized (clients) {
 						clients.remove(this);
@@ -108,10 +113,13 @@ public class Server{
 			// method to send a message to all clients
 			public void updateClients(Message message) {
 				for(ClientThread t : clients) {
-					try {
-						t.out.writeObject(message);
+					if(t.clientName != "") {
+						try {
+							t.out.writeObject(message);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
-					catch(Exception e) {e.printStackTrace();}
 				}
 			}
 		}//end of client thread

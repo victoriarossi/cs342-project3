@@ -1,6 +1,9 @@
 import java.util.HashMap;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,6 +31,8 @@ public class GuiClient extends Application{
 	VBox clientBox;
 	Client clientConnection;
 	ListView<String> listItems2;
+	ListView<String> displayListUsers;
+	ObservableList<String> storeUsersInListView;
 
 	Label connectionStatus;
 
@@ -48,20 +53,50 @@ public class GuiClient extends Application{
 			Message msg = (Message) data;
 			Platform.runLater(() -> {
 				if ("Ok Username".equals(msg.getMessageContent())) {
+					System.out.println("GOT A MESSAGE: " + msg.getMessageContent() + " FROM " + msg.getUserID());
+					// clear the listView
+					displayListUsers.getItems().removeAll(storeUsersInListView);
+					storeUsersInListView.clear();
+					// add the users to the listView
+					if(msg.getListOfUsers() != null) {
+						for (String user : msg.getListOfUsers()) {
+							storeUsersInListView.add(user);
+						}
+					}
+					// add the list view to the observable list
+					displayListUsers.setItems(storeUsersInListView);
 					primaryStage.setScene(sceneMap.get("options"));
 				}
 				else if ("Taken Username".equals(msg.getMessageContent())) {
 					showAlert("Username is taken. Try another one.", Alert.AlertType.ERROR);
 				}
 				else {
+					// add the messages to the listView
 					listItems2.getItems().add(msg.toString());
+					// clear the listView
+					displayListUsers.getItems().removeAll(storeUsersInListView);
+					storeUsersInListView.clear();
+					System.out.println("GOT A MESSAGE: " + msg.getMessageContent() + " FROM " + msg.getUserID());
+					System.out.println("USERS LIST: " + msg.getListOfUsers());
+					// add the users to the listView
+					if(msg.getListOfUsers() != null) {
+						for (String user : msg.getListOfUsers()) {
+							storeUsersInListView.add(user);
+						}
+					}
+					// add the list view to the observable list
+					displayListUsers.setItems(storeUsersInListView);
 				}
+
 			});
 		});
 
 		clientConnection.start();
 
+		// initialize lists view
 		listItems2 = new ListView<String>();
+		storeUsersInListView = FXCollections.observableArrayList();
+		displayListUsers = new ListView<>();
 
 		c1 = new TextField(); // input field for messages
 		b1 = new Button("Send"); // send button for messages
@@ -78,7 +113,8 @@ public class GuiClient extends Application{
 		sceneMap = new HashMap<String, Scene>();
 		sceneMap.put("client",  createClientGui(primaryStage));
 		sceneMap.put("clientLogin", createLoginScene(primaryStage)); // adds login screen to scene map
-		sceneMap.put("options", createOptionsScreen(primaryStage)); // adds the options screen to scene map
+		sceneMap.put("options", createOptionsScene(primaryStage)); // adds the options screen to scene map
+		sceneMap.put("users", createViewUsersScene(primaryStage)); // adds the view users screen to scene map
 		
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -197,7 +233,7 @@ public class GuiClient extends Application{
 	}
 
 	// creates options scene
-	public Scene createOptionsScreen(Stage primaryStage){
+	public Scene createOptionsScene(Stage primaryStage){
 		Button sendMessage = new Button("Send Message");
 		Button users = new Button("View All Users");
 		Button messages = new Button("View Messages");
@@ -210,10 +246,46 @@ public class GuiClient extends Application{
 			primaryStage.setScene(sceneMap.get("client"));
 		});
 
+		// when you click view users, changes the scene
+		users.setOnAction( e -> {
+			primaryStage.setScene(sceneMap.get("users"));
+		});
+
 		VBox root = new VBox(40, sendMessage, users, messages);
 		root.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
 		root.setAlignment(Pos.CENTER);
 		return new Scene(root,500, 400);
 	}
 
+	public Scene createViewUsersScene(Stage primaryStage){
+		BorderPane pane = new BorderPane();
+
+		// Create back button
+		Image home = new Image("back_arrow.png");
+		ImageView homeView = new ImageView(home);
+		homeView.setFitHeight(15);
+		homeView.setFitWidth(15);
+		Button backBtn = new Button();
+		backBtn.setOnAction( e -> {
+			primaryStage.setScene(sceneMap.get("options"));
+		});
+		backBtn.setGraphic(homeView);
+		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
+
+		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
+		pane.setTop(backBtn);
+		Color backgroundColor = Color.web("#F4DAB3");
+		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
+
+		Label title = new Label("List of all users:");
+		title.setStyle(titleStyle);
+
+		VBox users = new VBox(20, title, displayListUsers);
+		users.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
+		VBox.setMargin(users, new Insets(30));
+		users.setAlignment(Pos.CENTER);
+		pane.setCenter(users);
+
+		return new Scene(pane, 500, 400);
+	}
 }

@@ -1,3 +1,6 @@
 .DS_Store
 .DS_Store/*
 */.DS_Store/
+*.class
+Project3Client/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+Project3Server/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst

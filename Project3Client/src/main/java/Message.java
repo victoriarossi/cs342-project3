@@ -7,13 +7,21 @@ public class Message implements Serializable {
     private String userID; // ID of user sending the message
     private String messageContent; // content of the message
     private MessageType messageType; // type of message (BROADCAST = ALL USERS OR PRIVATE = SINGLE USER)
-    private ArrayList<String> clientIDs;
+    private ArrayList<String> listOfUsers; // list of users ID
 
     // Constructor to initialize message object with userID, message content, and type of message
     public Message(String userID, String messageContent, MessageType messageType) {
         this.userID = userID;
         this.messageContent = messageContent;
         this.messageType = messageType;
+    }
+
+    // Constructor to initialize message object with userID, message content, type of message, and list of users
+    public Message(String userID, String messageContent, MessageType messageType, ArrayList listOfUsers) {
+        this.userID = userID;
+        this.messageContent = messageContent;
+        this.messageType = messageType;
+        this.listOfUsers = listOfUsers;
     }
 
     // getter to retrieve userID of the message
@@ -47,8 +55,13 @@ public class Message implements Serializable {
     }
 
     //getter to retrieve clients usernames
-    public ArrayList<String> getClients(){
-        return clientIDs;
+    public ArrayList<String> getListOfUsers(){
+        return listOfUsers;
+    }
+
+    // setter to set the list of users
+    public void setListOfUsers(ArrayList listOfUsers) {
+        this.listOfUsers = listOfUsers;
     }
 
     // enum defining possible types of messages
@@ -58,7 +71,13 @@ public class Message implements Serializable {
     }
 
     public String toString(){
-        return userID + " sent: " + messageContent;
+        String message = userID + " sent: " + messageContent;
+        if(messageType == MessageType.BROADCAST){
+            message += " to everyone.";
+        } else if(messageType == MessageType.PRIVATE){
+            message += " to you.";
+        }
+        return message;
     }
 
 }

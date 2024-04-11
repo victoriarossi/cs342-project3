@@ -17,6 +17,21 @@ public class Message implements Serializable {
         this.messageType = messageType;
     }
 
+    // Constructor to initialize message object with userID, message content, type of message, and list of users 
+    public Message(String userID, String messageContent, MessageType messageType, ArrayList listOfUsers) {
+        this.userID = userID;
+        this.messageContent = messageContent;
+        this.messageType = messageType;
+        this.listOfUsers = listOfUsers;
+    }
+    
+    public Message(Message message, ArrayList listOfUsers) {
+        this.userID = message.getUserID();
+        this.messageContent = message.getMessageContent();
+        this.messageType = message.getMessageType();
+        this.listOfUsers = listOfUsers;
+    }
+
     // getter to retrieve userID of the message
     public String getUserID() {
         return userID;
@@ -47,6 +62,16 @@ public class Message implements Serializable {
         this.messageType = messageType;
     }
 
+    // getter to retrieve clients usernames
+    public ArrayList<String> getListOfUsers(){
+        return listOfUsers;
+    }
+
+    // setter to set the list of users
+    public void setListOfUsers(ArrayList listOfUsers) {
+        this.listOfUsers = listOfUsers;
+    }
+
     // enum defining possible types of messages
     enum MessageType {
         BROADCAST, // Message for all clients
@@ -54,6 +79,12 @@ public class Message implements Serializable {
     }
 
     public String toString(){
-        return "This is a message";
+        String message = userID + " sent: " + messageContent;
+        if(messageType == MessageType.BROADCAST){
+            message += " to everyone.";
+        } else if(messageType == MessageType.PRIVATE){
+            message += " to you.";
+        }
+        return message;
     }
 }
