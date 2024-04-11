@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -33,7 +34,11 @@ public class GuiClient extends Application{
 	Client clientConnection;
 	ListView<String> listItems2;
 	ListView<String> displayListUsers;
+	ListView<String> displayListItems;
 	ObservableList<String> storeUsersInListView;
+
+	String messageContent;
+	String currUsername;
 
 	Label connectionStatus;
 
@@ -82,6 +87,7 @@ public class GuiClient extends Application{
 		listItems2 = new ListView<String>();
 		storeUsersInListView = FXCollections.observableArrayList();
 		displayListUsers = new ListView<>();
+		displayListItems = new ListView<>();
 
 		c1 = new TextField(); // input field for messages
 		b1 = new Button("Send"); // send button for messages
@@ -90,7 +96,6 @@ public class GuiClient extends Application{
 			String currUsername = clientConnection.getUsername();
 			Message message = new Message(currUsername, messageContent, Message.MessageType.BROADCAST);
 			clientConnection.send(message);
-
 			c1.clear();
 		});
 
@@ -100,6 +105,7 @@ public class GuiClient extends Application{
 		sceneMap.put("clientLogin", createLoginScene(primaryStage)); // adds login screen to scene map
 		sceneMap.put("options", createOptionsScene(primaryStage)); // adds the options screen to scene map
 		sceneMap.put("users", createViewUsersScene(primaryStage)); // adds the view users screen to scene map
+		sceneMap.put("selectUser", createSelectUserScene(primaryStage, messageContent, currUsername)); //add the select user screen to scene map
 		
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -131,6 +137,7 @@ public class GuiClient extends Application{
 			String usernameAttempt = usernameField.getText();
 			if (!usernameAttempt.isEmpty()) {
 				clientConnection.setUsername(usernameAttempt);
+				currUsername = usernameAttempt;
 			}
 			else {
 				showAlert("Professor McCarty can't grade invisible students!", primaryStage);
@@ -176,7 +183,9 @@ public class GuiClient extends Application{
 		});
 
 		oneUser.setOnAction( e -> {
-			//something
+			messageContent = messageTextField.getText();
+			currUsername = clientConnection.getUsername();
+			primaryStage.setScene(sceneMap.get("selectUser"));
 		});
 
 		allUsers.disableProperty().bind(messageTextField.textProperty().isEmpty());
@@ -276,6 +285,7 @@ public class GuiClient extends Application{
 		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
 
 		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
+		pane.setTop(backBtn);
 
 		Color backgroundColor = Color.web("#F4DAB3");
 		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -293,10 +303,64 @@ public class GuiClient extends Application{
 		return new Scene(pane, 500, 400);
 	}
 
+	public Scene createSelectUserScene(Stage primaryStage, String messageContent, String currUsername){
+		BorderPane pane = new BorderPane();
+
+		// Create back button
+		Image home = new Image("back_arrow.png");
+		ImageView homeView = new ImageView(home);
+		homeView.setFitHeight(15);
+		homeView.setFitWidth(15);
+		Button backBtn = new Button();
+		backBtn.setOnAction( e -> {
+			primaryStage.setScene(sceneMap.get("client"));
+		});
+		backBtn.setGraphic(homeView);
+		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
+
+		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
+		pane.setTop(backBtn);
+
+		Color backgroundColor = Color.web("#F4DAB3");
+		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
+
+		Label title = new Label("Select the user you want to send to:");
+		title.setStyle(titleStyle);
+
+		final String[] receiverUsername = new String[1];
+		displayListItems.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				receiverUsername[0] = displayListItems.getSelectionModel().getSelectedItem();
+			}
+		});
+		
+		Button send = new Button("Send");
+		send.setStyle(btnStyle);
+		send.setOnAction(e -> {
+			Message msg = new Message(currUsername, messageContent, receiverUsername[0]);
+			clientConnection.send(msg);
+			primaryStage.setScene(sceneMap.get("client"));
+		});
+
+		VBox users = new VBox(20, title, displayListItems, send);
+		users.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
+		VBox.setMargin(users, new Insets(30));
+		users.setAlignment(Pos.CENTER);
+		displayListItems.setMaxWidth(400);
+		displayListItems.setMaxHeight(250);
+		pane.setCenter(users);
+		return new Scene(pane, 500, 400);
+	}
+
 	// helper function to update the user list
 	private void updateUserList(Message msg) {
 		storeUsersInListView.clear();
 		storeUsersInListView.addAll(msg.getListOfUsers());
 		displayListUsers.setItems(storeUsersInListView);
+		for(String user: msg.getListOfUsers()) {
+			if(!user.equals(currUsername))
+				displayListItems.getItems().add(user);
+		}
 	}
 }
