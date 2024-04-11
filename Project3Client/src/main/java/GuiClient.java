@@ -60,18 +60,23 @@ public class GuiClient extends Application{
 				else if ("Taken Username".equals(msg.getMessageContent())) {
 					showAlert("Username is taken. Try another one.", Alert.AlertType.ERROR);
 				}
-				else {
+				else if(!msg.getUserID().equals("Server")){
 					// updates the user list as long as it contains users
 					if (msg.getListOfUsers() != null) {
 						updateUserList(msg);
 					}
 					listItems2.getItems().add(msg.toString());
 				}
+				else {
+					// updates the user list as long as it contains users
+					if (msg.getListOfUsers() != null) {
+						updateUserList(msg);
+					}
+				}
 			});
 		});
 
 		clientConnection.start();
-
 		// initialize lists view
 		listItems2 = new ListView<String>();
 		storeUsersInListView = FXCollections.observableArrayList();

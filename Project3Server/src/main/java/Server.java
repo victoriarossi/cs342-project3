@@ -80,7 +80,6 @@ public class Server{
 								clientID.add(initialName);
 								clientName = initialName;
 								callback.accept(clientName + " has connected to server.");
-								System.out.println("CLIENTS WHEN NEW USER ADDED: " + clientID);
 								updateClients(new Message("Server", "New User", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
 								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE,new ArrayList<>(clientID)));
 							} else {
@@ -89,8 +88,6 @@ public class Server{
 						}
 						else {
 							// handles regular messages
-//							message.setListOfUsers(clientID);
-							System.out.println("CLIENTS WHEN SENDING REGULAR MESSAGES: " + clientID);
 							callback.accept(clientName + " sent: " + message.getMessageContent());
 							updateClients(new Message(message, clientID));
 						}
@@ -102,7 +99,7 @@ public class Server{
 					synchronized (clientID) {
 						clientID.remove(clientName);
 					}
-					updateClients(new Message("Server", "User left", Message.MessageType.BROADCAST, clientID));
+					updateClients(new Message("Server", "User left", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
 
 					synchronized (clients) {
 						clients.remove(this);
