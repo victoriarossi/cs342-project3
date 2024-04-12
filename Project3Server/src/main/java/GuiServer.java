@@ -75,6 +75,4 @@ public class GuiServer extends Application{
 		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
 		return new Scene(pane, 500, 400);
 	}
-
-
 }

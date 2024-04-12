@@ -1,4 +1,7 @@
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.function.Consumer;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -26,6 +29,8 @@ public class GuiClient extends Application{
 	TextField usernameField = new TextField();
 
 	Button connectBtn = new Button("Connect");
+
+	private String selectedUser;
 
 	TextField c1;
 	Button b1;
@@ -66,14 +71,11 @@ public class GuiClient extends Application{
 				else if ("Taken Username".equals(msg.getMessageContent())) {
 					showAlert("Be original, Professor McCarty dislikes copycats!", primaryStage);
 				}
-				else if(!msg.getUserID().equals("Server")){
-					// updates the user list as long as it contains users
-					if (msg.getListOfUsers() != null) {
-						updateUserList(msg);
-					}
-					listItems2.getItems().add(msg.toString());
-				}
 				else {
+					// gets rid of 'New User' messages
+					if (!"New User".equals(msg.getMessageContent())) {
+						listItems2.getItems().add(msg.toString());
+					}
 					// updates the user list as long as it contains users
 					if (msg.getListOfUsers() != null) {
 						updateUserList(msg);
@@ -106,7 +108,8 @@ public class GuiClient extends Application{
 		sceneMap.put("options", createOptionsScene(primaryStage)); // adds the options screen to scene map
 		sceneMap.put("users", createViewUsersScene(primaryStage)); // adds the view users screen to scene map
 		sceneMap.put("selectUser", createSelectUserScene(primaryStage, messageContent, currUsername)); //add the select user screen to scene map
-		
+		sceneMap.put("viewMessages", createViewMessages(primaryStage));
+
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
@@ -184,7 +187,6 @@ public class GuiClient extends Application{
 
 		oneUser.setOnAction( e -> {
 			messageContent = messageTextField.getText();
-			System.out.println(messageContent);
 			currUsername = clientConnection.getUsername();
 			primaryStage.setScene(sceneMap.get("selectUser"));
 		});
@@ -264,6 +266,10 @@ public class GuiClient extends Application{
 			primaryStage.setScene(sceneMap.get("users"));
 		});
 
+		messages.setOnAction(e -> {
+			primaryStage.setScene(sceneMap.get("viewMessages"));
+		});
+
 		VBox root = new VBox(40, sendMessage, users, messages);
 		root.setStyle("-fx-background-color: #F4DAB3; -fx-font-family: 'serif'");
 		root.setAlignment(Pos.CENTER);
@@ -328,18 +334,18 @@ public class GuiClient extends Application{
 		Label title = new Label("Select the user you want to send to:");
 		title.setStyle(titleStyle);
 
-		final String[] receiverUsername = new String[1];
+//		final String[] receiverUsername = new String[1];
 		displayListItems.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent event) {
-				receiverUsername[0] = displayListItems.getSelectionModel().getSelectedItem();
+				selectedUser = displayListItems.getSelectionModel().getSelectedItem();
 			}
 		});
 		
 		Button send = new Button("Send");
 		send.setStyle(btnStyle);
 		send.setOnAction(e -> {
-			Message msg = new Message(currUsername, messageContent, receiverUsername[0]);
+			Message msg = new Message(currUsername, messageContent, selectedUser);
 			clientConnection.send(msg);
 			primaryStage.setScene(sceneMap.get("client"));
 		});
@@ -352,6 +358,12 @@ public class GuiClient extends Application{
 		displayListItems.setMaxHeight(250);
 		pane.setCenter(users);
 		return new Scene(pane, 500, 400);
+	}
+
+	public Scene createViewMessages(Stage primaryStage) {
+		VBox root = new VBox(10, listItems2); // adds message chat to vbox
+
+		return new Scene(root, 500, 400);
 	}
 
 	// helper function to update the user list

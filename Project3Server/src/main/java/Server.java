@@ -16,9 +16,8 @@ public class Server{
 	static ArrayList<String> clientID = new ArrayList<>();
 	TheServer server;
 	private Consumer<Serializable> callback;
-	String clientName = "";
-	
-	
+
+
 	Server(Consumer<Serializable> call){
 	
 		callback = call;
