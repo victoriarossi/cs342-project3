@@ -87,8 +87,9 @@ public class Server{
 						}
 						else {
 							// handles regular messages
-							callback.accept(clientName + " sent: " + message.getMessageContent());
-							updateClients(new Message(message, clientID));
+//							callback.accept(clientName + " sent: " + message.getMessageContent());
+//							updateClients(new Message(message, clientID));
+							updateClients(message);
 						}
 					}
 				}
@@ -118,11 +119,14 @@ public class Server{
 							}
 						}
 					}
-				} else {
+				}
+				else if (message.getMessageType() == Message.MessageType.PRIVATE) {
+					String recipient = message.getUserIDReceiver();
 					for(ClientThread t : clients) {
-						if(t.clientName == message.getUserIDReceiver()) {
+						if(t.clientName.equals(recipient)) {
 							try {
 								t.out.writeObject(message);
+//								break;
 							} catch (Exception e) {
 								e.printStackTrace();
 							}

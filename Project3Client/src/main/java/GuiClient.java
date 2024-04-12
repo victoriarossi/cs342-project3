@@ -30,6 +30,8 @@ public class GuiClient extends Application{
 
 	Button connectBtn = new Button("Connect");
 
+	private TextField messageTextField;
+
 	private String selectedUser;
 
 	TextField c1;
@@ -37,15 +39,15 @@ public class GuiClient extends Application{
 	HashMap<String, Scene> sceneMap;
 	VBox clientBox;
 	Client clientConnection;
+
+	private String messageContent;
 	ListView<String> listItems2;
 	ListView<String> displayListUsers;
 	ListView<String> displayListItems;
 	ObservableList<String> storeUsersInListView;
 
-	String messageContent;
 	String currUsername;
 
-	Label connectionStatus;
 
 	// styling strings for different UI
 	String btnStyle = "-fx-background-color: #DDC6A3; -fx-text-fill: black; -fx-background-radius: 25px; -fx-padding: 14; -fx-cursor: hand; -fx-font-size: 18";
@@ -72,13 +74,25 @@ public class GuiClient extends Application{
 					showAlert("Be original, Professor McCarty dislikes copycats!", primaryStage);
 				}
 				else {
-					// gets rid of 'New User' messages
-					if (!"New User".equals(msg.getMessageContent())) {
-						listItems2.getItems().add(msg.toString());
-					}
+
 					// updates the user list as long as it contains users
 					if (msg.getListOfUsers() != null) {
 						updateUserList(msg);
+					}
+
+					boolean isPrivate = msg.getMessageType() == Message.MessageType.PRIVATE;
+					boolean isForCurrentUser = isPrivate && msg.getUserIDReceiver().equals(clientConnection.getUsername());
+
+					if (isPrivate){
+						if (isForCurrentUser || msg.getUserID().equals(clientConnection.getUsername())) {
+							String privateMsg = "Whisper from " + msg.getUserID() + ": " + msg.getMessageContent();
+							listItems2.getItems().add(privateMsg);
+						}
+					}
+					else {
+						if (!"New User".equals(msg.getMessageContent())) {
+							listItems2.getItems().add(msg.getUserID() + ": " + msg.getMessageContent());
+						}
 					}
 				}
 			});
@@ -163,7 +177,7 @@ public class GuiClient extends Application{
 		Label title = new Label("Input your message:");
 		title.setStyle(subtitleStyle + "; -fx-padding: 10");
 
-		TextField messageTextField = new TextField();
+		messageTextField = new TextField();
 		messageTextField.setMaxWidth(250);
 		messageTextField.setStyle("-fx-padding: 10; -fx-background-radius: 25px;");
 
@@ -185,9 +199,8 @@ public class GuiClient extends Application{
 			messageTextField.clear();
 		});
 
-		oneUser.setOnAction( e -> {
+		oneUser.setOnAction(e -> {
 			messageContent = messageTextField.getText();
-			currUsername = clientConnection.getUsername();
 			primaryStage.setScene(sceneMap.get("selectUser"));
 		});
 
@@ -345,8 +358,12 @@ public class GuiClient extends Application{
 		Button send = new Button("Send");
 		send.setStyle(btnStyle);
 		send.setOnAction(e -> {
-			Message msg = new Message(currUsername, messageContent, selectedUser);
+			String currMsgContent = messageTextField.getText();
+			String usernameCurrent = clientConnection.getUsername();
+			Message msg = new Message(usernameCurrent, currMsgContent, selectedUser);
 			clientConnection.send(msg);
+			listItems2.getItems().add("Sent to " + selectedUser + ": " + currMsgContent);
+			messageTextField.clear();
 			primaryStage.setScene(sceneMap.get("client"));
 		});
 
