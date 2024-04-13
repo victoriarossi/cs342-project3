@@ -32,7 +32,7 @@ public class GuiClient extends Application{
 
 	private TextField messageTextField;
 
-	private String selectedUser;
+	private String selectedUser = "";
 
 	TextField c1;
 	Button b1;
@@ -347,15 +347,21 @@ public class GuiClient extends Application{
 		Label title = new Label("Select the user you want to send to:");
 		title.setStyle(titleStyle);
 
+		Button send = new Button("Send");
+
 //		final String[] receiverUsername = new String[1];
 		displayListItems.setOnMouseClicked(new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent event) {
 				selectedUser = displayListItems.getSelectionModel().getSelectedItem();
+				send.setDisable(false);
 			}
 		});
 		
-		Button send = new Button("Send");
+
+		if(selectedUser == ""){
+			send.setDisable(true);
+		}
 		send.setStyle(btnStyle);
 		send.setOnAction(e -> {
 			String currMsgContent = messageTextField.getText();
@@ -372,15 +378,45 @@ public class GuiClient extends Application{
 		VBox.setMargin(users, new Insets(30));
 		users.setAlignment(Pos.CENTER);
 		displayListItems.setMaxWidth(400);
-		displayListItems.setMaxHeight(250);
+		displayListItems.setMaxHeight(200);
 		pane.setCenter(users);
 		return new Scene(pane, 500, 400);
 	}
 
 	public Scene createViewMessages(Stage primaryStage) {
-		VBox root = new VBox(10, listItems2); // adds message chat to vbox
+		BorderPane pane = new BorderPane();
+//
+		// Create back button
+		Image home = new Image("back_arrow.png");
+		ImageView homeView = new ImageView(home);
+		homeView.setFitHeight(15);
+		homeView.setFitWidth(15);
+		Button backBtn = new Button();
+		backBtn.setOnAction( e -> {
+			primaryStage.setScene(sceneMap.get("options"));
+		});
+		backBtn.setGraphic(homeView);
+		backBtn.setStyle(btnStyle.concat("-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 25px;"));
 
-		return new Scene(root, 500, 400);
+		BorderPane.setAlignment(backBtn, Pos.TOP_LEFT);
+		pane.setTop(backBtn);
+
+		Color backgroundColor = Color.web("#F4DAB3");
+		pane.setBackground(new Background(new BackgroundFill(backgroundColor, CornerRadii.EMPTY, Insets.EMPTY)));
+
+		Label title = new Label("Messages");
+		title.setStyle(titleStyle);
+
+		VBox vbox = new VBox(10, title, listItems2); // adds message chat to vbox
+
+		VBox.setMargin(vbox, new Insets(70));
+		vbox.setAlignment(Pos.CENTER);
+		BorderPane.setMargin(pane, new Insets(70));
+		listItems2.setMaxWidth(400);
+		listItems2.setMaxHeight(250);
+		pane.setCenter(vbox);
+
+		return new Scene(pane, 500, 400);
 	}
 
 	// helper function to update the user list
