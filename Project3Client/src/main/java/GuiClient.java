@@ -240,21 +240,21 @@ public class GuiClient extends Application{
 
 		VBox root = new VBox(20);
 		root.setAlignment(Pos.CENTER);
-		root.setStyle("-fx-background-color: #ffcccc");
+		root.setStyle("-fx-background-color: #F4DAB3");
 
 		Label header = new Label(message);
 		header.setFont(new Font("Arial", 16));
-		header.setStyle("-fx-text-fill: #550000");
+		header.setStyle("-fx-text-fill: red");
 
 		Button returnBtn = new Button("I understand");
-		returnBtn.setStyle("-fx-background-color: #0078D7; -fx-text-fill: white; -fx-padding: 10px; -fx-cursor: hand; -fx-border-radius: 5px; -fx-background-radius: 5px");
+		returnBtn.setStyle(btnStyle);
 		returnBtn.setOnAction(e -> {
 			primaryStage.setScene(sceneMap.get("clientLogin"));
 		});
 
 		root.getChildren().addAll(header, returnBtn);
 
-		Scene errorScene = new Scene(root, 400, 300);
+		Scene errorScene = new Scene(root, 500, 400);
 		primaryStage.setScene(errorScene);
 		primaryStage.show();
 
