@@ -48,19 +48,9 @@ public class Message implements Serializable {
         return messageContent;
     }
 
-    // setter to set message content of the message
-    public void setMessageContent(String messageContent) {
-        this.messageContent = messageContent;
-    }
-
     // getter to retrieve message type of the message
     public MessageType getMessageType() {
         return messageType;
-    }
-
-    // setter to set message type of the message
-    public void setMessageType(MessageType messageType) {
-        this.messageType = messageType;
     }
 
     // getter to retrieve clients usernames
@@ -68,11 +58,6 @@ public class Message implements Serializable {
         return listOfUsers;
     }
 
-    // setter to set the list of users
-    public void setListOfUsers(ArrayList listOfUsers) {
-        this.listOfUsers = listOfUsers;
-    }
-    
     // getter to retrieve the private receiver of message
     public String getUserIDReceiver() {
         return userIDReceiver;

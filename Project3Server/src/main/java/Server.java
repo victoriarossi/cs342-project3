@@ -6,10 +6,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-import javafx.application.Platform;
-import javafx.scene.control.ListView;
-
-
 public class Server{
 
 	ArrayList<ClientThread> clients = new ArrayList<ClientThread>();
@@ -70,45 +66,56 @@ public class Server{
 
 					// processes incoming messages from client
 					while (true) {
-						Message message = (Message) in.readObject();
+						Message message = (Message) in.readObject(); // reads next message object from client
 
 						// checks if the message is a username check request
 						if (message.getMessageType() == Message.MessageType.BROADCAST && "checkUser".equals(message.getMessageContent())) {
 							String initialName = message.getUserID();
-							if (!clientID.contains(initialName)) {
+							if (!clientID.contains(initialName)) { // checks if username is not already taken
 								clientID.add(initialName);
 								clientName = initialName;
 								callback.accept(clientName + " has connected to server.");
+
+								// notifies all clients of the new user
 								updateClients(new Message("Server", "New User", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
+
+								// sends confirmation to new user that their username is valid
 								out.writeObject(new Message("Server", "Ok Username", Message.MessageType.PRIVATE,new ArrayList<>(clientID)));
 							} else {
+								// informs client that username is taken
 								out.writeObject(new Message("Server", "Taken Username", Message.MessageType.PRIVATE));
 							}
 						}
 						else {
-							// handles regular messages
-//							callback.accept(clientName + " sent: " + message.getMessageContent());
-//							updateClients(new Message(message, clientID));
+							// forwards any other type of message to all clients
 							updateClients(message);
 						}
 					}
 				}
 				catch (Exception e) {
-					callback.accept(clientName + " has left the chat.");
 
-					synchronized (clientID) {
-						clientID.remove(clientName);
+					// checks if client had set a username
+					if (clientName != null && !clientName.isEmpty()) {
+						// handles disconnection
+						callback.accept(clientName + " has left the chat.");
+
+						synchronized (clientID) {
+							clientID.remove(clientName); // removes client from active users list
+						}
+
+						// notifies all clients that the user left
+						updateClients(new Message("Server", clientName + " has left the chat.", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
 					}
-					updateClients(new Message("Server", "User left", Message.MessageType.BROADCAST, new ArrayList<>(clientID)));
-
 					synchronized (clients) {
 						clients.remove(this);
 					}
 				}
 			}//end of run
 
-			// method to send a message to all clients
+			// method to send a message to all clients or specific client
 			public void updateClients(Message message) {
+
+				//  broadcast message to all connected clients
 				if(message.getMessageType() == Message.MessageType.BROADCAST) {
 					for(ClientThread t : clients) {
 						if(t.clientName != "") {
@@ -120,13 +127,14 @@ public class Server{
 						}
 					}
 				}
+
+				// sends a private message to a specific user
 				else if (message.getMessageType() == Message.MessageType.PRIVATE) {
 					String recipient = message.getUserIDReceiver();
 					for(ClientThread t : clients) {
 						if(t.clientName.equals(recipient)) {
 							try {
 								t.out.writeObject(message);
-//								break;
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
